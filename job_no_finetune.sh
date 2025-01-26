@@ -9,7 +9,7 @@
 #SBATCH --time=12:00:00
 
 # Load modules if required by SNELLIUS environment (adjust as needed)
-module load python/3.9
+module load 2023
 
 # Activate virtual environment
 source venv/bin/activate
@@ -22,8 +22,11 @@ pip install openai vllm json os
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
 export OPENAI_API_KEY=BLANK
 
-# Start the vLLM server (adjust parameters as necessary for your setup)
-python -m vllm.entrypoints.api_server --model deepseek-r1-distill-qwen-32b & --model granite-3.1-8b-instruct
+# Run the first vLLM server for ModelA on port 8000
+vllm serve deepseek-r1-distill-qwen-32b --port 8000 --api-key token-1 &
+
+# Run the second vLLM server for ModelB on port 8001
+vllm serve granite-3.1-8b-instruct --port 8001 --api-key token-2 &
 
 
 # Run your script
