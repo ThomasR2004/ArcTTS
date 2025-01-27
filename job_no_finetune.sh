@@ -16,7 +16,10 @@ source venv/bin/activate
 
 # Install required Python packages
 pip install --upgrade pip
-pip install openai vllm json os
+pip install openai 
+pip install vllm 
+pip install json 
+pip install os
 
 # Set necessary environment variables
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
@@ -35,4 +38,4 @@ vllm serve granite-3.1-8b-instruct --port 8001 --api-key token-2 &
 
 
 # Run script
-python arc.ipynb
+python arc.py
