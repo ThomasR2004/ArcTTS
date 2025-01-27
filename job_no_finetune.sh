@@ -11,6 +11,9 @@
 # Load modules if required by SNELLIUS environment 
 module load 2023
 
+# Activate virtual environment
+source venv/bin/activate
+
 # Install required Python packages
 pip install --upgrade pip
 pip install -r requirements.txt
