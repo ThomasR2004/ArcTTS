@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --time=12:00:00
 
-# Load modules if required by SNELLIUS environment (adjust as needed)
+# Load modules if required by SNELLIUS environment 
 module load 2023
 
 # Activate virtual environment
@@ -20,7 +20,12 @@ pip install openai vllm json os
 
 # Set necessary environment variables
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
-export OPENAI_API_KEY=BLANK
+
+#local models
+git lfs install
+git clone git@hf.co:deepseek-ai/DeepSeek-R1-Distill-Qwen-32B 
+git clone git@hf.co:ibm-granite/granite-3.1-8b-instruct 
+
 
 # Run the first vLLM server for ModelA on port 8000
 vllm serve deepseek-r1-distill-qwen-32b --port 8000 --api-key token-1 &
@@ -29,5 +34,5 @@ vllm serve deepseek-r1-distill-qwen-32b --port 8000 --api-key token-1 &
 vllm serve granite-3.1-8b-instruct --port 8001 --api-key token-2 &
 
 
-# Run your script
+# Run script
 python arc.ipynb
