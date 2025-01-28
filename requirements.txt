@@ -2,3 +2,4 @@ transformers
 openai
 unsloth
 os
+trl
