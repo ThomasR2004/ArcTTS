@@ -9,6 +9,11 @@
 #SBATCH --time=00:30:00
 
 pip install trl
+pip install "unsloth[cu124-torch250] @ git+https://github.com/unslothai/unsloth.git"
+pip install json
+pip install os
+pip install transformers
+
 source venv/bin/activate
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
 python finetunepython.py \
