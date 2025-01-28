@@ -10,7 +10,7 @@
 
 pip download -r requirements.txt -d ./packages
 pip install trl
-pip install unsloth
+pip install "unsloth[cu121-ampere-torch240] @ git+https://github.com/unslothai/unsloth.git"
 
 source venv/bin/activate
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
