@@ -8,6 +8,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --time=00:30:00
 
+pip install trl
 source venv/bin/activate
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
 python finetunepython.py \
