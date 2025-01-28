@@ -10,7 +10,7 @@
 
 pip download -r requirements.txt -d ./packages
 pip install trl
-
+pip install unsloth
 
 source venv/bin/activate
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
