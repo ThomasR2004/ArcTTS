@@ -1,17 +1,17 @@
 #!/bin/bash
 
 #SBATCH --job-name=finetune_deepseek
-#SBATCH --partition=gpu_h100
+#SBATCH --partition=gpu_a100
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gpus-per-node=1
 #SBATCH --cpus-per-task=16
-#SBATCH --time=12:00:00
+#SBATCH --time=00:30:00
 
 source venv/bin/activate
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
 python finetunepython.py \
-                          --pretrained_model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Qwen-32B \
+                          --pretrained_model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Llama-70B \
                           --data_dir processed_arc_data.json \
                           --output_dir /scratch-shared/$USER/finetune_results/ \
                           --max_seq_length 8192 \
