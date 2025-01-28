@@ -15,7 +15,7 @@ class ExperimentArguments:
     """
 
     pretrained_model_name_or_path: str = field(
-        default="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+        default="deepseek-ai/DeepSeek-R1-Distill-Llama-70B",
         metadata={
             "help": (
                 "The model checkpoint or HuggingFace repo id to load the model from"
@@ -29,7 +29,7 @@ class ExperimentArguments:
     from_foundation_model: bool = field(
         default=True,
         metadata={
-            "help": "Flag to specify whether the finetuning starts from a foundation model or a instruct-finetuned model"
+            "help": "Flag to specify whether the finetuning starts from a foundation model or an instruct-finetuned model"
         },
     )
 
@@ -38,7 +38,6 @@ class ExperimentArguments:
             raise ValueError(
                 f"Please specify the model and data! Received model: {self.pretrained_model_name_or_path} and data: {self.data_dir}"
             )
-
 
 def prepare_dataset(dataset, tokenizer, from_foundation_model=False):
     if from_foundation_model:
@@ -72,7 +71,6 @@ def prepare_dataset(dataset, tokenizer, from_foundation_model=False):
 
     return dataset
 
-
 def apply_qlora(model, max_seq_length):
     model = FastLanguageModel.get_peft_model(
         model,
@@ -95,7 +93,6 @@ def apply_qlora(model, max_seq_length):
     )
 
     return model
-
 
 def main(user_config, sft_config):
     if os.path.isfile(user_config.data_dir):
@@ -129,7 +126,6 @@ def main(user_config, sft_config):
     print(
         f"{round(trainer_stats.metrics['train_runtime']/60, 2)} minutes used for training."
     )
-
 
 if __name__ == "__main__":
     parser = HfArgumentParser((ExperimentArguments, SFTConfig))

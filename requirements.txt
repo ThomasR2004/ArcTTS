@@ -1,4 +1,4 @@
 transformers
 openai
-vllm
+unsloth
 os
