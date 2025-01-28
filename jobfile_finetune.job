@@ -12,7 +12,7 @@
 pip download -r requirements.txt -d ./packages
 pip install wheel
 pip install trl
-pip install "unsloth[cu121-ampere-torch240] @ git+https://github.com/unslothai/unsloth.git"
+pip install "unsloth[cu124-ampere-torch240] @ git+https://github.com/unslothai/unsloth.git"
 
 source venv/bin/activate
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
