@@ -10,6 +10,7 @@
 
 
 pip download -r requirements.txt -d ./packages
+pip install nvcc
 pip install wheel
 pip install trl
 pip install "unsloth[cu121-ampere-torch240] @ git+https://github.com/unslothai/unsloth.git"
