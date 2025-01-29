@@ -4,7 +4,7 @@ from unsloth import FastLanguageModel
 from transformers import TextStreamer
 
 # Paths to models
-MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
 MODEL_2 = "ibm-granite/granite-3.1-8b-instruct"
 
 # Load the first model
@@ -12,7 +12,7 @@ model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
     model_name=MODEL_1,
     max_seq_length=8192,
     load_in_4bit=False,
-    dtype="Float16",
+    dtype="bfloat16",
     device_map="auto",
 )
 FastLanguageModel.for_inference(model_1)
@@ -22,7 +22,7 @@ model_2, tokenizer_2 = FastLanguageModel.from_pretrained(
     model_name=MODEL_2,
     max_seq_length=8192,
     load_in_4bit=False,
-    dtype="Float16",
+    dtype="bfloat16",
     device_map="auto",
 )
 FastLanguageModel.for_inference(model_2)
