@@ -11,8 +11,8 @@ MODEL_2 = "ibm-granite/granite-3.1-8b-instruct"
 model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
     model_name=MODEL_1,
     max_seq_length=8192,
-    load_in_4bit=True,
-    dtype=None,
+    load_in_4bit=False,
+    dtype="Float16",
     device_map="auto",
 )
 FastLanguageModel.for_inference(model_1)
@@ -21,8 +21,8 @@ FastLanguageModel.for_inference(model_1)
 model_2, tokenizer_2 = FastLanguageModel.from_pretrained(
     model_name=MODEL_2,
     max_seq_length=8192,
-    load_in_4bit=True,
-    dtype=None,
+    load_in_4bit=False,
+    dtype="Float16",
     device_map="auto",
 )
 FastLanguageModel.for_inference(model_2)
