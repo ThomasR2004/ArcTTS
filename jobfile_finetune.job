@@ -12,15 +12,16 @@ source ~/miniconda3/etc/profile.d/conda.sh
 conda activate unsloth_env
 
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
-torchrun --nproc_per_node=3 finetunepython.py \
-    --pretrained_model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Llama-70B \
-    --data_dir processed_arc_data.json \
-    --max_seq_length 8192 \
-    --per_device_train 8 \
-    --per_device_eval 8 \
-    --num_train_epochs 1 \
-    --optim adamw_8bit \
-    --bf16 \
-    --gradient_accumulation_steps 4 \
-    --packing \
-    --logging_steps 100
+python finetunepython.py \
+                          --pretrained_model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Qwen-32B \
+                          --data_dir processed_arc_data.json \
+                          --output_dir /scratch-shared/$USER/finetune_results/ \
+                          --max_seq_length 8192 \
+                          --per_device_train 8 \
+                          --per_device_eval 8 \
+                          --num_train_epochs 1 \
+                          --optim adamw_8bit \
+                          --bf16 \
+                          --gradient_accumulation_steps 4 \
+                          --packing \
+                          --logging_steps 100
