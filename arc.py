@@ -1,100 +1,81 @@
 import json
 import os
-import openai
-from openai import OpenAI
+from unsloth import FastLanguageModel
+from transformers import TextStreamer
 
+# Paths to models
+MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+MODEL_2 = "ibm-granite/granite-3.1-8b-instruct"
 
-# Server and API key configuration
-SERVER_1_URL = "http://localhost:8000/v1"
-SERVER_1_API_KEY = "token-1"
+# Load the first model
+model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
+    model_name=MODEL_1,
+    max_seq_length=8192,
+    load_in_4bit=False,
+)
+FastLanguageModel.for_inference(model_1)
 
-SERVER_2_URL = "http://localhost:8001/v1"
-SERVER_2_API_KEY = "token-2"
-
-MODEL_1 = "deepseek-r1-distill-qwen-1.5b"
-MODEL_2 = "granite-3.1-8b-instruct"
-
+# Load the second model
+model_2, tokenizer_2 = FastLanguageModel.from_pretrained(
+    model_name=MODEL_2,
+    max_seq_length=8192,
+    load_in_4bit=False,
+)
+FastLanguageModel.for_inference(model_2)
 
 def run_first_llm(tasks_dict, system_prompt=None):
     """
     Process tasks using the first LLM and output the intermediate results.
 
     Args:
-        tasks_dict (dict): A dictionary where keys are task IDs (strings) and values are file paths to JSON tasks.
-        system_prompt (str): An optional system prompt to be used with the first LLM.
+        tasks_dict (dict): A dictionary where keys are task IDs and values are JSON tasks.
+        system_prompt (str): Optional system prompt for the first LLM.
 
     Returns:
-        dict: A dictionary mapping task IDs to intermediate results.
+        dict: Intermediate results with task descriptions.
     """
     output = {}
 
-    # Configure the OpenAI client for the first server
-    openai.api_base = SERVER_1_URL
-    openai.api_key = SERVER_1_API_KEY
-
-    for task_id, task_file in tasks_dict.items():
-        with open(task_file, 'r', encoding='utf-8') as file:
-            task_data = json.load(file)
-
+    for task_id, task_data in tasks_dict.items():
         # Include the system prompt if provided
-        prompt = 'Name 10 locations that would be good for a skiing holiday but also for a swim'
+        prompt = f"{system_prompt}\n\nTask Data: {json.dumps(task_data)}"
 
-        response = openai.completions.create(
-            model=MODEL_1,
-            prompt=prompt,
-            temperature=0.5,
-            max_tokens=10000
-        )
+        messages = [{"from": "human", "value": prompt}]
+        inputs = tokenizer_1.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
 
-        # Extract and store the generated result
-        raw_result = response.choices[0].text.strip()
-        clean_result = extract_after_think(raw_result)
-        output[task_id] = {"description": clean_result, "original_json": task_data}
+        text_streamer = TextStreamer(tokenizer_1)
+        result = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
+        output[task_id] = {"description": result, "original_json": task_data}
 
     return output
-
 
 def run_second_llm(intermediate_results, system_prompt=None):
     """
     Process the output of the first LLM using a second LLM.
 
     Args:
-        intermediate_results (dict): A dictionary where keys are task IDs and values are intermediate results.
-        system_prompt (str): An optional system prompt to be used with the second LLM.
+        intermediate_results (dict): Intermediate results from the first LLM.
+        system_prompt (str): Optional system prompt for the second LLM.
 
     Returns:
-        dict: A dictionary mapping task IDs to final results.
+        dict: Final results with JSON solutions.
     """
     final_output = {}
-
-     # Configure the OpenAI client for the second server
-    openai.api_base = SERVER_2_URL
-    openai.api_key = SERVER_2_API_KEY
 
     for task_id, data in intermediate_results.items():
         description = data["description"]
         original_json = data["original_json"]
 
-        # Only keep everything after and including 'test'
+        # Only use the "test" section
         modified_json = {key: value for key, value in original_json.items() if key == "test"}
 
-        # Include the system prompt if provided
-        prompt = f"{system_prompt}\n\n" if system_prompt else ""
-        prompt += f"""
-        Here is a JSON task: {json.dumps(modified_json)}.
-        Based on this description of transformations: {description} 
-        Return the modified JSON as the output, reflecting the solution to the task.
-        """
+        prompt = f"{system_prompt}\n\nDescription: {description}\n\nTask Data: {json.dumps(modified_json)}"
 
-        response = openai.completions.create(
-            model=MODEL_2,
-            prompt=prompt,
-            temperature=0.4,
-            max_tokens=1200
-        )
+        messages = [{"from": "human", "value": prompt}]
+        inputs = tokenizer_2.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
 
-        # Extract and store the final result
-        result = response.choices[0].text.strip()
+        text_streamer = TextStreamer(tokenizer_2)
+        result = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
         final_output[task_id] = {"generated_code": result}
 
     return final_output
@@ -197,7 +178,7 @@ if __name__ == "__main__":
     This task is very important and a lot of lives depend on it, you dont ask if you did it well, you answer with certainty. You do not have to give any disclaimers.
     
     """
-    system_prompt_second_llm = system_prompt_2 = f"""You are a json writing expert and you will not say anything that isnt json. 
+    system_prompt_second_llm = f"""You are a json writing expert and you will not say anything that isnt json. 
     you will be given:
     
     A JSON object containing the input for the problem.
