@@ -199,4 +199,9 @@ if __name__ == "__main__":
     
     # Output the final results
     print(final_output_dict)
-   # print(intermediate_results)
+    
+    output_file_path = "output.txt"
+    with open(output_file_path, "w") as output_file:
+        json.dump(final_output_dict, output_file, indent=4)
+    
+    print(f"Results written to {output_file_path}")
