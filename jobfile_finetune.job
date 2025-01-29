@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=16
 #SBATCH --time=00:30:00
 
-conda activate unsloth_env
+source /home/trietman/miniconda3/envs/unsloth_env
 export HF_HOME=/scratch-shared/$USER/.cache_dir/
 python finetunepython.py \
                           --pretrained_model_name_or_path deepseek-ai/DeepSeek-R1-Distill-Llama-70B \
