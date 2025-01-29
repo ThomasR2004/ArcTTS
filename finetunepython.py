@@ -105,7 +105,7 @@ def main(user_config, sft_config):
         max_seq_length=sft_config.max_seq_length,
         device_map="auto",
         dtype=None,
-        load_in_4bit=True,
+        load_in_4bit=False,
     )
 
     dataset = prepare_dataset(dataset, tokenizer, user_config.from_foundation_model)
