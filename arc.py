@@ -71,6 +71,13 @@ def run_second_llm(intermediate_results, system_prompt=None):
         original_json = data["original_json"]
 
         # Only use the "test" section
+        if isinstance(original_json, str):
+            try:
+                original_json = json.loads(original_json)  # Convert string to dictionary
+            except json.JSONDecodeError:
+                print(f"Warning: Could not parse JSON for task {task_id}")
+                original_json = {}  # Default to an empty dictionary to prevent crashes
+
         modified_json = {key: value for key, value in original_json.items() if key == "test"}
 
         prompt = f"{system_prompt}\n\nDescription: {description}\n\nTask Data: {json.dumps(modified_json)}"
