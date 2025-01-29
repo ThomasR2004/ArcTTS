@@ -104,8 +104,9 @@ def main(user_config, sft_config):
         model_name=user_config.pretrained_model_name_or_path,
         max_seq_length=sft_config.max_seq_length,
         device_map="auto",
-        dtype=None,
+        dtype=torch.float16,
         load_in_4bit=False,
+        trust_remote_code=True,
     )
 
     dataset = prepare_dataset(dataset, tokenizer, user_config.from_foundation_model)
