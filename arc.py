@@ -6,7 +6,7 @@ from transformers import TextStreamer
 
 # Paths to models
 MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
-MODEL_2 = "mistralai/Codestral-22B-v0.1"
+MODEL_2 = "meta-llama/Llama-3.2-3B-Instruct"
 
 ADAPTER_PATH = "/gpfs/home6/trietman/ArcTTS/checkpoint-43/" # load finetune
 # Load the first model
