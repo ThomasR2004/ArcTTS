@@ -128,12 +128,16 @@ def process_output_to_dict(final_results):
                     if 'output' in output_dict:
                         output = output_dict['output']
                         
-                        # Store the output under attempt_1 for the task_id
+                        # If task_id exists, add output to attempt_2, else to attempt_1
                         if task_id not in task_dict:
                             task_dict[task_id] = {'attempt_1': output}
                         else:
-                            # If task_id already exists, update attempt_1
-                            task_dict[task_id]['attempt_1'] = output
+                            # Check if attempt_1 already exists
+                            if 'attempt_1' in task_dict[task_id]:
+                                task_dict[task_id]['attempt_2'] = output
+                            else:
+                                # If attempt_1 doesn't exist, store it as attempt_1
+                                task_dict[task_id]['attempt_1'] = output
                     else:
                         print(f"Warning: 'output' key missing in the result for task {task_id}.")
                 except json.JSONDecodeError:
@@ -237,7 +241,7 @@ if __name__ == "__main__":
     json_string = json.dumps(final_output_dict, separators=(',', ':'))
 
     # Write the single-line JSON string to the file
-    with open(output_file_path, "w") as output_file:
+    with open("output.txt", "w") as output_file:
         output_file.write(json_string)
     
-    print(f"Results written to {output_file_path}")
+    print(f"Results written to {"output.txt"}")
