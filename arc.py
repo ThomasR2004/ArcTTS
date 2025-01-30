@@ -44,7 +44,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
         # Include the system prompt if provided
         prompt = f"{system_prompt}\n\nTask Data: {json.dumps(task_data)}"
 
-        messages = [{"from": "human", "value": prompt}]
+        messages = [{"role": "user", "content": prompt}]
         inputs = tokenizer_1.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
 
         text_streamer = TextStreamer(tokenizer_1)
@@ -82,7 +82,7 @@ def run_second_llm(intermediate_results, system_prompt=None):
 
         prompt = f"{system_prompt}\n\nDescription: {description}\n\nTask Data: {json.dumps(modified_json)}"
 
-        messages = [{"from": "human", "value": prompt}]
+        messages = [{"role": "user", "content": prompt}]
         inputs = tokenizer_2.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
