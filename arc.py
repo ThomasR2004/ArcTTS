@@ -80,7 +80,7 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
         ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
-        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1000, use_cache=True)
+        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=3000, use_cache=True)
 
         # Decode the tensor output to a readable string
         generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
@@ -116,7 +116,6 @@ def process_output_to_dict(final_results):
     for task_id, result_data in final_results.items():
         # Extract the "generated_code" (which may contain extra text)
         generated_code = result_data.get("generated_code")
-        extracted_data = None
         
         if generated_code:
             # Use regex to find the JSON portion in the text
@@ -127,27 +126,26 @@ def process_output_to_dict(final_results):
                     # Parse the matched JSON string into a dictionary
                     output_dict = json.loads(match.group(0))
                     
-                    # Find the first key that contains a list value
-                    for key, value in output_dict.items():
-                        if isinstance(value, list):
-                            extracted_data = value
-                            break
+                    # Check if the parsed JSON contains the "output" key
+                    if 'output' in output_dict:
+                        output = output_dict['output']
+                        
+                        # If task_id exists, add output to attempt_2, else to attempt_1
+                        if task_id not in task_dict:
+                            task_dict[task_id] = {'attempt_1': output}
+                        else:
+                            # Check if attempt_1 already exists
+                            if 'attempt_1' in task_dict[task_id]:
+                                task_dict[task_id]['attempt_2'] = output
+                            else:
+                                # If attempt_1 doesn't exist, store it as attempt_1
+                                task_dict[task_id]['attempt_1'] = output
+                    else:
+                        print(f"Warning: 'output' key missing in the result for task {task_id}.")
                 except json.JSONDecodeError:
                     print(f"Error: Invalid JSON format for task {task_id}.")
             else:
                 print(f"Error: No valid JSON found for task {task_id}.")
-        else:
-            print(f"Error: 'generated_code' missing for task {task_id}.")
-
-        # If task_id doesn't exist, initialize it with attempt_1
-        if task_id not in task_dict:
-            task_dict[task_id] = {"attempt_1": extracted_data}
-        else:
-            # If task_id already exists, store the output as attempt_2
-            if "attempt_1" in task_dict[task_id]:
-                task_dict[task_id]["attempt_2"] = extracted_data
-            else:
-                task_dict[task_id]["attempt_1"] = extracted_data
 
     return task_dict
 
@@ -214,7 +212,8 @@ if __name__ == "__main__":
     Your goal is to apply the description of how to solve the problem. 
     
     You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section.
-    You will not apply any formatting to your json and provide it all in a single line."
+    You will not apply any formatting to your json and provide it all in a single line." 
+    The Json will always start with "output": 
     """
     
     # Step 1: Process tasks with the first LLM
