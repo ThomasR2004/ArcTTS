@@ -98,7 +98,7 @@ import json
 def process_output_to_dict(final_results):
     """
     Processes the final results and stores them in a dictionary format with attempts.
-    Extracts the "output" grid from the generated JSON, handling multiple cases.
+    Extracts the "output" grid from the generated JSON, even if surrounded by text.
 
     Args:
         final_results (dict): The final results from the second LLM.
@@ -108,49 +108,41 @@ def process_output_to_dict(final_results):
     """
     task_dict = {}
 
+    # Regular expression to find JSON-like structures in the text
+    json_pattern = r'\{.*"output":\s*\[\[.*\]\].*\}'
+
     for task_id, result_data in final_results.items():
-        output = result_data.get("generated_code")
+        # Extract the "generated_code" (which may contain extra text)
+        generated_code = result_data.get("generated_code")
         
-        try:
-            # Case 1: If the output is a JSON string, parse it
-            if isinstance(output, str):
-                output_json = json.loads(output)
-            # Case 2: If the output is already a JSON object, use it directly
-            elif isinstance(output, dict):
-                output_json = output
-            else:
-                output_json = None
-
-            # Extract the "output" grid
-            if output_json:
-                if "test" in output_json and isinstance(output_json["test"], list):
-                    # Case 1: "test" key contains a list of items
-                    for item in output_json["test"]:
-                        if "output" in item:
-                            output_grid = item["output"]
-                            break
+        if generated_code:
+            # Use regex to find the JSON portion in the text
+            match = re.search(json_pattern, generated_code)
+            
+            if match:
+                try:
+                    # Parse the matched JSON string into a dictionary
+                    output_dict = json.loads(match.group(0))
+                    
+                    # Check if the parsed JSON contains the "output" key
+                    if 'output' in output_dict:
+                        output = output_dict['output']
+                        
+                        # Store the output under attempt_1 for the task_id
+                        if task_id not in task_dict:
+                            task_dict[task_id] = {'attempt_1': output}
+                        else:
+                            # If task_id already exists, update attempt_1
+                            task_dict[task_id]['attempt_1'] = output
                     else:
-                        output_grid = None
-                elif "output" in output_json:
-                    # Case 2: "output" key directly contains the grid
-                    output_grid = output_json["output"]
-                else:
-                    output_grid = None
+                        print(f"Warning: 'output' key missing in the result for task {task_id}.")
+                except json.JSONDecodeError:
+                    print(f"Error: Invalid JSON format for task {task_id}.")
             else:
-                output_grid = None
-        except json.JSONDecodeError:
-            output_grid = None
-
-        # If task_id doesn't exist, initialize it with attempt_1
-        if task_id not in task_dict:
-            task_dict[task_id] = {"attempt_1": output_grid}
+                print(f"Error: No valid JSON found for task {task_id}.")
         else:
-            # If task_id already exists, store the output as attempt_2
-            if "attempt_1" in task_dict[task_id]:
-                task_dict[task_id]["attempt_2"] = output_grid
-            else:
-                task_dict[task_id]["attempt_1"] = output_grid
-                
+            print(f"Error: 'generated_code' missing for task {task_id}.")
+    
     return task_dict
 
 def load_tasks(directory):
@@ -235,7 +227,7 @@ if __name__ == "__main__":
     # Step 3: Process final results into a dictionary format
     final_output_dict = process_output_to_dict(final_results)
     
-
+    print(final_results)
     # Output the final results
     print(final_output_dict)
 
