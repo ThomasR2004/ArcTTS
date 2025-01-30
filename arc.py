@@ -94,7 +94,7 @@ def run_second_llm(intermediate_results, system_prompt=None):
 def process_output_to_dict(final_results):
     """
     Processes the final results and stores them in a dictionary format with attempts.
-    Extracts the "output" grid from the generated JSON, handling both "test" and "output" keys.
+    Extracts the "output" grid from the generated JSON, ignoring any extra text before or after the JSON.
 
     Args:
         final_results (dict): The final results from the second LLM.
@@ -108,31 +108,27 @@ def process_output_to_dict(final_results):
         output = result_data.get("generated_code")
         
         try:
-            # Parse the generated JSON string
-            output_json = json.loads(output)
-            
-            # Extract the "output" grid
-            if "test" in output_json and isinstance(output_json["test"], list):
-                # Case 1: "test" key contains a list of items
-                for item in output_json["test"]:
-                    if "output" in item:
-                        output_grid = item["output"]
-                        break
+            # Use regex to extract JSON-like structure from the string
+            json_match = re.search(r'(\{.*\})', output, re.DOTALL)
+            if json_match:
+                # Extract the matched JSON string
+                output_json = json.loads(json_match.group(1))
+                
+                # Extract only the "output" grid
+                if "output" in output_json:
+                    output_grid = output_json["output"]
                 else:
                     output_grid = None
-            elif "output" in output_json:
-                # Case 2: "output" key directly contains the grid
-                output_grid = output_json["output"]
             else:
                 output_grid = None
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, AttributeError):
             output_grid = None
 
         # If task_id doesn't exist, initialize it with attempt_1
         if task_id not in task_dict:
             task_dict[task_id] = {"attempt_1": output_grid}
         else:
-            # If task_id already exists, store the output as attempt_2
+            # If task_id already exists, store the output as attempt_2 (optional, based on your logic)
             if "attempt_1" in task_dict[task_id]:
                 task_dict[task_id]["attempt_2"] = output_grid
             else:
