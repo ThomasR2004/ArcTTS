@@ -94,27 +94,45 @@ def run_second_llm(intermediate_results, system_prompt=None):
 def process_output_to_dict(final_results):
     """
     Processes the final results and stores them in a dictionary format with attempts.
+    Extracts only the "output" grid from the generated JSON.
 
     Args:
         final_results (dict): The final results from the second LLM.
 
     Returns:
-        dict: A dictionary mapping task IDs to attempts.
+        dict: A dictionary mapping task IDs to attempts, containing only the "output" grid.
     """
     task_dict = {}
 
     for task_id, result_data in final_results.items():
         output = result_data.get("generated_code")
         
+        try:
+            # Parse the generated JSON string
+            output_json = json.loads(output)
+            
+            # Extract the "output" grid
+            if "test" in output_json and isinstance(output_json["test"], list):
+                for item in output_json["test"]:
+                    if "output" in item:
+                        output_grid = item["output"]
+                        break
+                else:
+                    output_grid = None
+            else:
+                output_grid = None
+        except json.JSONDecodeError:
+            output_grid = None
+
         # If task_id doesn't exist, initialize it with attempt_1
         if task_id not in task_dict:
-            task_dict[task_id] = {"attempt_1": output}
+            task_dict[task_id] = {"attempt_1": output_grid}
         else:
             # If task_id already exists, store the output as attempt_2
             if "attempt_1" in task_dict[task_id]:
-                task_dict[task_id]["attempt_2"] = output
+                task_dict[task_id]["attempt_2"] = output_grid
             else:
-                task_dict[task_id]["attempt_1"] = output
+                task_dict[task_id]["attempt_1"] = output_grid
                 
     return task_dict
 
