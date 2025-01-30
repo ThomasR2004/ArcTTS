@@ -8,6 +8,7 @@ from transformers import TextStreamer
 MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
 MODEL_2 = "ibm-granite/granite-3.1-8b-instruct"
 
+ADAPTER_PATH = "/gpfs/home6/trietman/ArcTTS/checkpoint-43/" # load finetune
 # Load the first model
 model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
     model_name=MODEL_1,
@@ -16,6 +17,7 @@ model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
     dtype="auto",
     device_map="auto",
 )
+model_1.load_adapter(ADAPTER_PATH)
 FastLanguageModel.for_inference(model_1)
 
 # Load the second model
@@ -91,10 +93,12 @@ def run_second_llm(intermediate_results, system_prompt=None):
     return final_output
 
 
+import json
+
 def process_output_to_dict(final_results):
     """
     Processes the final results and stores them in a dictionary format with attempts.
-    Extracts the "output" grid from the generated JSON, ignoring any extra text before or after the JSON.
+    Extracts the "output" grid from the generated JSON, handling multiple cases.
 
     Args:
         final_results (dict): The final results from the second LLM.
@@ -108,27 +112,40 @@ def process_output_to_dict(final_results):
         output = result_data.get("generated_code")
         
         try:
-            # Use regex to extract the JSON-like structure from the string
-            json_match = re.search(r'(\{.*\})', output.strip(), re.DOTALL)
-            if json_match:
-                # Extract the matched JSON string
-                output_json = json.loads(json_match.group(1))
-                
-                # Extract only the "output" grid
-                if "output" in output_json:
+            # Case 1: If the output is a JSON string, parse it
+            if isinstance(output, str):
+                output_json = json.loads(output)
+            # Case 2: If the output is already a JSON object, use it directly
+            elif isinstance(output, dict):
+                output_json = output
+            else:
+                output_json = None
+
+            # Extract the "output" grid
+            if output_json:
+                if "test" in output_json and isinstance(output_json["test"], list):
+                    # Case 1: "test" key contains a list of items
+                    for item in output_json["test"]:
+                        if "output" in item:
+                            output_grid = item["output"]
+                            break
+                    else:
+                        output_grid = None
+                elif "output" in output_json:
+                    # Case 2: "output" key directly contains the grid
                     output_grid = output_json["output"]
                 else:
                     output_grid = None
             else:
                 output_grid = None
-        except (json.JSONDecodeError, AttributeError):
+        except json.JSONDecodeError:
             output_grid = None
 
         # If task_id doesn't exist, initialize it with attempt_1
         if task_id not in task_dict:
             task_dict[task_id] = {"attempt_1": output_grid}
         else:
-            # If task_id already exists, store the output as attempt_2 (optional, based on your logic)
+            # If task_id already exists, store the output as attempt_2
             if "attempt_1" in task_dict[task_id]:
                 task_dict[task_id]["attempt_2"] = output_grid
             else:
