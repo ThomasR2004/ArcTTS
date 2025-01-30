@@ -6,7 +6,7 @@ from transformers import TextStreamer
 
 # Paths to models
 MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
-MODEL_2 = "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+MODEL_2 = "Qwen/Qwen2.5-7B-Instruct-1M"
 
 ADAPTER_PATH = "/gpfs/home6/trietman/ArcTTS/checkpoint-43/" # load finetune
 # Load the first model
