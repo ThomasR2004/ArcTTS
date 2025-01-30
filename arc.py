@@ -1,5 +1,4 @@
 import json
-import ijson
 import os
 import re
 from unsloth import FastLanguageModel
@@ -156,7 +155,7 @@ def load_tasks(directory):
         if file_name.endswith('.json'):
             task_id = os.path.splitext(file_name)[0]
             with open(os.path.join(directory, file_name), 'r') as f:
-                tasks[task_id] = ijson.load(f)  # Load JSON content instead of just the path
+                tasks[task_id] = json.load(f)  # Load JSON content instead of just the path
     return tasks
 
 def extract_after_think(response_text):
