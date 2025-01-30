@@ -98,21 +98,27 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
 
 import json
 
-def process_output_to_dict(final_results):
+import ast
+import re
+
+def process_output_to_dict(final_results, existing_dict=None):
     """
     Processes the final_results dictionary and extracts the first valid list of lists
-    from the "generated_code" field for each task_id. Maps each task_id to a dictionary
-    with "attempt_1" as the key and the extracted list of lists as the value.
+    from the "generated_code" field for each task_id. If the task_id already exists
+    in the existing_dict, the new output is stored as "attempt_2".
 
     Args:
         final_results (dict): A dictionary where keys are task_ids and values are
                               dictionaries containing a "generated_code" field.
+        existing_dict (dict): An existing dictionary containing previous attempts.
+                              Defaults to None.
 
     Returns:
-        dict: A dictionary mapping task_ids to dictionaries with "attempt_1" as the key
-              and the extracted list of lists as the value.
+        dict: A dictionary mapping task_ids to dictionaries with "attempt_1" and
+              (optionally) "attempt_2" as keys, containing the extracted lists.
     """
-    result_dict = {}
+    if existing_dict is None:
+        existing_dict = {}
 
     for task_id, result_data in final_results.items():
         # Extract the "generated_code" (which may contain extra text)
@@ -133,20 +139,26 @@ def process_output_to_dict(final_results):
                 output_grid = []  # Skip if the matched string is invalid
 
             # Ensure the extracted object is a list of lists
-            if isinstance(output_grid, list) and all(isinstance(row, list) for row in output_grid):
-                result_dict[task_id] = {
-                    "attempt_1": output_grid
-                }
-            else:
-                result_dict[task_id] = {
-                    "attempt_1": []  # Skip if the structure is invalid
-                }
+            if not isinstance(output_grid, list) or not all(isinstance(row, list) for row in output_grid):
+                output_grid = []  # Skip if the structure is invalid
         else:
-            result_dict[task_id] = {
-                "attempt_1": []  # Skip if no valid list of lists is found
+            output_grid = []  # Skip if no valid list of lists is found
+
+        # Check if the task_id already exists in the existing_dict
+        if task_id in existing_dict:
+            # If attempt_1 exists, store the new output as attempt_2
+            if "attempt_1" in existing_dict[task_id]:
+                existing_dict[task_id]["attempt_2"] = output_grid
+            else:
+                # If attempt_1 doesn't exist, store the output as attempt_1
+                existing_dict[task_id]["attempt_1"] = output_grid
+        else:
+            # If the task_id doesn't exist, create a new entry with attempt_1
+            existing_dict[task_id] = {
+                "attempt_1": output_grid
             }
 
-    return result_dict
+    return existing_dict
 
 
 def load_tasks(directory):
@@ -215,20 +227,26 @@ if __name__ == "__main__":
     The Json will always start with "output":
     """
     
-    # Step 1: Process tasks with the first LLM
-    intermediate_results, removed_sections = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
-
-    # Step 2: Process intermediate results with the second LLM
-    final_results = run_second_llm(intermediate_results, removed_sections, system_prompt=system_prompt_second_llm)
-
+    # **First Run**
+    intermediate_results_1, removed_sections_1 = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
+    final_results_1 = run_second_llm(intermediate_results_1, removed_sections_1, system_prompt=system_prompt_second_llm)
     
-    # Step 3: Process final results into a dictionary format
-    final_output_dict = process_output_to_dict(final_results)
-    
-    print(final_results)
-    # Output the final results
-    print(final_output_dict)
+    # Process first run output (stores attempt_1)
+    final_output_dict = process_output_to_dict(final_results_1)
 
+    # **Second Run** (Runs again on the same tasks)
+    intermediate_results_2, removed_sections_2 = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
+    final_results_2 = run_second_llm(intermediate_results_2, removed_sections_2, system_prompt=system_prompt_second_llm)
+
+    # Process second run output (stores attempt_2)
+    final_output_dict = process_output_to_dict(final_results_2, existing_dict=final_output_dict)
+
+    # Convert the dictionary to a single-line JSON string
+    json_string = json.dumps(final_output_dict, separators=(',', ':'))
+
+    # Write the single-line JSON string to the file
+    with open("output.txt", "w") as output_file:
+        output_file.write(json_string)
     
     
     # Convert the dictionary to a single-line JSON string
