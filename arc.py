@@ -11,7 +11,7 @@ MODEL_2 = "ibm-granite/granite-3.1-8b-instruct"
 # Load the first model
 model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
     model_name=MODEL_1,
-    max_seq_length=8192,
+    max_seq_length=16000,
     load_in_4bit=True,
     dtype="auto",
     device_map="auto",
@@ -39,7 +39,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
         inputs = tokenizer_1.apply_chat_template(messages, tokenize=True, add_generation_prompt=False, return_tensors="pt").to("cuda")
 
         text_streamer = TextStreamer(tokenizer_1)
-        generated_tokens = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=4000, use_cache=True)
+        generated_tokens = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=20000, use_cache=True)
 
         # Decode the tensor output to a readable string
         output_text = tokenizer_1.decode(generated_tokens[0], skip_special_tokens=True)
