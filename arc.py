@@ -32,41 +32,43 @@ FastLanguageModel.for_inference(model_2)
 
 def run_first_llm(tasks_dict, system_prompt=None):
     output = {}
-
+    removed_sections = {}
+    
+    # Remove all keys named "test" from task_data
+    filtered_tasks_dict = {}
     for task_id, task_data in tasks_dict.items():
+        removed_sections[task_id] = {k: v for k, v in task_data.items() if k == "test"}
+        filtered_tasks_dict[task_id] = {k: v for k, v in task_data.items() if k != "test"}
+
+    for task_id, task_data in filtered_tasks_dict.items():
         # Include the system prompt if provided
         prompt = f"{system_prompt}\n\nTask Data: {json.dumps(task_data)}"
 
         messages = [{"role": "user", "content": prompt}]
-        inputs = tokenizer_1.apply_chat_template(messages, tokenize=True, add_generation_prompt=False, return_tensors="pt").to("cuda")
+        inputs = tokenizer_1.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=False, return_tensors="pt"
+        ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_1)
-        generated_tokens = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=20000, use_cache=True)
+        generated_tokens = model_1.generate(
+            input_ids=inputs, streamer=text_streamer, max_new_tokens=20000, use_cache=True
+        )
 
         # Decode the tensor output to a readable string
         output_text = tokenizer_1.decode(generated_tokens[0], skip_special_tokens=True)
         description = extract_after_think(output_text)
 
-        output[task_id] = {"description": description, "original_json": task_data}
+        output[task_id] = {"description": description}
+    
+    return output, removed_sections
 
-    return output
 
-
-def run_second_llm(intermediate_results, system_prompt=None):
+def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
     final_output = {}
 
-    for task_id, data in intermediate_results.items():
-        description = data["description"]
-        original_json = data["original_json"]
-        
-
-        # Ensure original_json is properly formatted
-        if isinstance(original_json, str):
-            original_json = json.loads(original_json)
-            
-
-        # Extract only the 'test' section
-        modified_json = {key: value for key, value in original_json.items() if key == "test"}
+    for task_id, description in intermediate_results.items():
+        # Retrieve the removed "test" section
+        modified_json = removed_sections.get(task_id, {})
 
         prompt = f"{system_prompt}\n\nDescription: {description}\n\nTask Data: {json.dumps(modified_json)}"
 
