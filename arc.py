@@ -56,7 +56,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
 
         # Decode the tensor output to a readable string
         output_text = tokenizer_1.decode(generated_tokens[0], skip_special_tokens=True)
-        description = extract_after_think(output_text)
+        description = extract_after_think(output_text, system_prompt)
 
         output[task_id] = {"description": description}
     
@@ -160,20 +160,26 @@ def load_tasks(directory):
                 tasks[task_id] = json.load(f)  # Load JSON content instead of just the path
     return tasks
 
-def extract_after_think(response_text):
+def extract_after_think(response_text, system_prompt_first_llm):
     """
-    Extracts the portion of the response text after the '<think>' tag.
+    Extracts the portion of the response text after the '<think>' tag and removes the system prompt if it exists.
 
     Args:
         response_text (str): The full response text from the DeepSeek LLM.
+        system_prompt_first_llm (str): The system prompt used for the first LLM.
 
     Returns:
-        str: The portion of the response after '<think>', or the original text if '<think>' is not found.
+        str: The portion of the response after '<think>' and without the system prompt, or the original text if '<think>' is not found.
     """
     think_marker = "</think>"
     if think_marker in response_text:
-        return response_text.split(think_marker, 1)[-1].strip()
-    return response_text.strip()
+        response_text = response_text.split(think_marker, 1)[-1].strip()
+    
+    # Remove the system prompt if it exists in the response text
+    if system_prompt_first_llm in response_text:
+        response_text = response_text.replace(system_prompt_first_llm, "").strip()
+    
+    return response_text
 
 # Example usage
 if __name__ == "__main__":
