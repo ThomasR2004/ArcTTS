@@ -99,53 +99,26 @@ import json
 
 def process_output_to_dict(final_results):
     """
-    Processes the final results and stores them in a dictionary format with attempts.
-    Extracts the "output" grid from the generated JSON, even if surrounded by text.
+    Processes raw output lists into a structured dictionary format with attempts.
 
     Args:
-        final_results (dict): The final results from the second LLM.
+        task_outputs (dict): A dictionary mapping task IDs to lists of output grids.
 
     Returns:
         dict: A dictionary mapping task IDs to attempts, containing only the "output" grid.
     """
     task_dict = {}
+    
+    for task_id, outputs in final_results.items():
+        if not isinstance(outputs, list):
+            print(f"Warning: Output for task {task_id} is not a list.")
+            continue
 
-    # Regular expression to find JSON-like structures in the text
-    json_pattern = r'\{.*"output":\s*\[\[.*\]\].*\}'
-
-    for task_id, result_data in final_results.items():
-        # Extract the "generated_code" (which may contain extra text)
-        generated_code = result_data.get("generated_code")
-        
-        if generated_code:
-            # Use regex to find the JSON portion in the text
-            match = re.search(json_pattern, generated_code)
-            
-            if match:
-                try:
-                    # Parse the matched JSON string into a dictionary
-                    output_dict = json.loads(match.group(0))
-                    
-                    # Check if the parsed JSON contains the "output" key
-                    if 'output' in output_dict:
-                        output = output_dict['output']
-                        
-                        # If task_id exists, add output to attempt_2, else to attempt_1
-                        if task_id not in task_dict:
-                            task_dict[task_id] = {'attempt_1': output}
-                        else:
-                            # Check if attempt_1 already exists
-                            if 'attempt_1' in task_dict[task_id]:
-                                task_dict[task_id]['attempt_2'] = output
-                            else:
-                                # If attempt_1 doesn't exist, store it as attempt_1
-                                task_dict[task_id]['attempt_1'] = output
-                    else:
-                        print(f"Warning: 'output' key missing in the result for task {task_id}.")
-                except json.JSONDecodeError:
-                    print(f"Error: Invalid JSON format for task {task_id}.")
-            else:
-                print(f"Error: No valid JSON found for task {task_id}.")
+        # Assign attempts based on availability
+        if len(outputs) >= 1:
+            task_dict[task_id] = {'attempt_1': outputs[0]}
+        if len(outputs) >= 2:
+            task_dict[task_id]['attempt_2'] = outputs[1]
 
     return task_dict
 
@@ -213,7 +186,7 @@ if __name__ == "__main__":
     
     You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section.
     You will not apply any formatting to your json and provide it all in a single line." 
-    The Json will always start with "output": 
+    The Json will always start with "output":
     """
     
     # Step 1: Process tasks with the first LLM
