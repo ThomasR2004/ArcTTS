@@ -108,8 +108,8 @@ def process_output_to_dict(final_results):
         output = result_data.get("generated_code")
         
         try:
-            # Use regex to extract JSON-like structure from the string
-            json_match = re.search(r'(\{.*\})', output, re.DOTALL)
+            # Use regex to extract the JSON-like structure from the string
+            json_match = re.search(r'(\{.*\})', output.strip(), re.DOTALL)
             if json_match:
                 # Extract the matched JSON string
                 output_json = json.loads(json_match.group(1))
