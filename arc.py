@@ -63,7 +63,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
     return output, removed_sections
 
 
-def run_second_llm(intermediate_results, system_prompt=None):
+def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
     final_output = {}
 
     for task_id, description in intermediate_results.items():
@@ -225,10 +225,11 @@ if __name__ == "__main__":
     """
     
     # Step 1: Process tasks with the first LLM
-    intermediate_results = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
-    
+    intermediate_results, removed_sections = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
+
     # Step 2: Process intermediate results with the second LLM
-    final_results = run_second_llm(intermediate_results, system_prompt=system_prompt_second_llm)
+    final_results = run_second_llm(intermediate_results, removed_sections, system_prompt=system_prompt_second_llm)
+
     
     # Step 3: Process final results into a dictionary format
     final_output_dict = process_output_to_dict(final_results)
