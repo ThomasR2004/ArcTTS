@@ -13,7 +13,7 @@ ADAPTER_PATH = "/gpfs/home6/trietman/ArcTTS/checkpoint-43/" # load finetune
 # Load the first model
 model_1, tokenizer_1 = FastLanguageModel.from_pretrained(
     model_name=MODEL_1,
-    max_seq_length=16000,
+    max_seq_length=8192,
     load_in_4bit=True,
     dtype="auto",
     device_map="auto",
@@ -52,7 +52,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
 
         text_streamer = TextStreamer(tokenizer_1)
         generated_tokens = model_1.generate(
-            input_ids=inputs, streamer=text_streamer, max_new_tokens=20000, use_cache=True
+            input_ids=inputs, streamer=text_streamer, max_new_tokens=10000, use_cache=True
         )
 
         # Decode the tensor output to a readable string
