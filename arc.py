@@ -41,7 +41,8 @@ def run_first_llm(tasks_dict, system_prompt=None):
         generated_tokens = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
 
         # Decode the tensor output to a readable string
-        description = tokenizer_1.decode(generated_tokens[0], skip_special_tokens=True)
+        output_text = tokenizer_1.decode(generated_tokens[0], skip_special_tokens=True)
+        description = extract_after_think(output_text)
 
         output[task_id] = {"description": description, "original_json": task_data}
 
@@ -55,13 +56,13 @@ def run_second_llm(intermediate_results, system_prompt=None):
         description = data["description"]
         original_json = data["original_json"]
 
+        print("meow")
+        print(description)
+
         # Ensure original_json is properly formatted
         if isinstance(original_json, str):
-            try:
-                original_json = json.loads(original_json)
-            except json.JSONDecodeError:
-                print(f"Warning: Could not parse JSON for task {task_id}. Using an empty dictionary.")
-                original_json = {}
+            original_json = json.loads(original_json)
+            
 
         # Extract only the 'test' section
         modified_json = {key: value for key, value in original_json.items() if key == "test"}
@@ -203,6 +204,7 @@ if __name__ == "__main__":
     # Step 3: Process final results into a dictionary format
     final_output_dict = process_output_to_dict(final_results)
     
+
     # Output the final results
     print(final_output_dict)
     
