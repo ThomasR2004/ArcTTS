@@ -28,16 +28,6 @@ model_2, tokenizer_2 = FastLanguageModel.from_pretrained(
 FastLanguageModel.for_inference(model_2)
 
 def run_first_llm(tasks_dict, system_prompt=None):
-    """
-    Process tasks using the first LLM and output the intermediate results.
-
-    Args:
-        tasks_dict (dict): A dictionary where keys are task IDs and values are JSON tasks.
-        system_prompt (str): Optional system prompt for the first LLM.
-
-    Returns:
-        dict: Intermediate results with task descriptions.
-    """
     output = {}
 
     for task_id, task_data in tasks_dict.items():
@@ -48,48 +38,53 @@ def run_first_llm(tasks_dict, system_prompt=None):
         inputs = tokenizer_1.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
 
         text_streamer = TextStreamer(tokenizer_1)
-        result = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
-        output[task_id] = {"description": result, "original_json": task_data}
+        generated_tokens = model_1.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
+
+        # Decode the tensor output to a readable string
+        description = tokenizer_1.decode(generated_tokens[0], skip_special_tokens=True)
+
+        output[task_id] = {"description": description, "original_json": task_data}
 
     return output
 
+
 def run_second_llm(intermediate_results, system_prompt=None):
-    """
-    Process the output of the first LLM using a second LLM.
-
-    Args:
-        intermediate_results (dict): Intermediate results from the first LLM.
-        system_prompt (str): Optional system prompt for the second LLM.
-
-    Returns:
-        dict: Final results with JSON solutions.
-    """
     final_output = {}
 
     for task_id, data in intermediate_results.items():
         description = data["description"]
         original_json = data["original_json"]
 
-        # Only use the "test" section
+        # Ensure original_json is properly formatted
         if isinstance(original_json, str):
             try:
-                original_json = json.loads(original_json)  # Convert string to dictionary
+                original_json = json.loads(original_json)
             except json.JSONDecodeError:
-                print(f"Warning: Could not parse JSON for task {task_id}")
-                original_json = {}  # Default to an empty dictionary to prevent crashes
+                print(f"Warning: Could not parse JSON for task {task_id}. Using an empty dictionary.")
+                original_json = {}
 
+        # Extract only the 'test' section
         modified_json = {key: value for key, value in original_json.items() if key == "test"}
 
         prompt = f"{system_prompt}\n\nDescription: {description}\n\nTask Data: {json.dumps(modified_json)}"
 
+        # Fix message format for `apply_chat_template`
         messages = [{"role": "user", "content": prompt}]
-        inputs = tokenizer_2.apply_chat_template(messages, tokenize=True, add_generation_prompt=True, return_tensors="pt").to("cuda")
+
+        inputs = tokenizer_2.apply_chat_template(
+            messages, tokenize=True, add_generation_prompt=True, return_tensors="pt"
+        ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
-        result = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
-        final_output[task_id] = {"generated_code": result}
+        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=1024, use_cache=True)
+
+        # Decode the tensor output to a readable string
+        generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
+
+        final_output[task_id] = {"generated_code": generated_code}
 
     return final_output
+
 
 def process_output_to_dict(final_results):
     """
