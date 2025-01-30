@@ -213,7 +213,8 @@ if __name__ == "__main__":
     A description of how to approach the problem and transform the input to find the correct solution.
     Your goal is to apply the description of how to solve the problem. 
     
-    You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section."
+    You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section.
+    You will not apply any formatting to your json and provide it all in a single line."
     """
     
     # Step 1: Process tasks with the first LLM
