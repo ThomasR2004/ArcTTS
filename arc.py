@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from unsloth import FastLanguageModel
 from transformers import TextStreamer
 
@@ -79,6 +80,11 @@ def run_second_llm(intermediate_results, system_prompt=None):
 
         # Decode the tensor output to a readable string
         generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
+
+        # Extract JSON content using regex
+        json_match = re.search(r'\{.*\}', generated_code, re.DOTALL)
+        if json_match:
+            generated_code = json_match.group(0)
 
         final_output[task_id] = {"generated_code": generated_code}
 
