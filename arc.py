@@ -187,37 +187,22 @@ if __name__ == "__main__":
     tasks_dict = load_tasks(tasks_directory)
     
     # Define system prompts
-    system_prompt_first_llm = f"""You are a reasoning assistant specializing in analyzing and solving Abstraction and Reasoning Corpus (ARC) tasks. Each ARC task is provided in a JSON format containing grids of input-output pairs, where the inputs are before-transformation states, and the outputs are after-transformation states. Your job is to examine the patterns and transformations between the input-output pairs and generate a concise English description of the process required to solve the task.
+    system_prompt_first_llm = f"""You are a reasoning assistant specializing in solving Abstraction and Reasoning Corpus (ARC) tasks. Each task consists of input-output grid pairs in JSON format. Your goal is to identify the transformation pattern and describe it concisely in English.
 
     Guidelines:
-    Pattern Recognition: Focus on identifying patterns or rules applied to the input grids to produce the output grids. These may include transformations like filling, shifting, coloring, symmetry, duplication, etc.
-    Conciseness: Your description should be as clear and concise as possible while fully explaining the solution process. Avoid unnecessary detail or repetition.
-    Example Mapping: Use specific terms to describe the transformation (e.g., "replace all blue squares with yellow circles," "extend lines to form rectangles").
-    Assumptions: Do not assume any information beyond what is explicitly presented in the JSON.
-    Do not provide code about how to solve the problem. I only want a concise english description
-    Example Output:
-    Task: A grid contains several shapes of varying colors. In the output, the largest contiguous block of any color is replaced with blocks of a new color.
-    Output Description: "Identify the largest contiguous block of connected cells of any color. Change the color of these cells to blue while leaving the rest of the grid unchanged."
-    
-    Task: A grid has shapes arranged in the left half, and the right half is empty. In the output, the left half is mirrored onto the right half.
-    Output Description: "Copy the shapes from the left half of the grid and mirror them onto the right half, maintaining their orientation and color."
-    
-    Task: The input contains various closed shapes with some internal empty cells. In the output, all empty cells inside closed shapes are filled with the same color as the shape's border.
-    Output Description: "For each closed shape, identify all internal empty cells and fill them with the color of the border. Ensure no external cells are affected."
-    
-    Task: The input grid contains lines of varying colors and lengths. In the output, all lines are extended horizontally until they reach the edge of the grid.
-    Output Description: "Extend each horizontal line in the grid to the left and right edges while preserving the original color of the line. Do not alter vertical or diagonal lines."
-    
-    Task: Grids have isolated squares of varying colors, some marked with a smaller black dot inside. In the output, only squares with black dots are kept; others are removed.
-    Output Description: "Remove all squares without black dots inside them. Retain the original color of squares with dots and preserve their positions."
-    
-    Input Format:
-    You will receive JSON objects with input-output grids in a simplified format. Examine these grids to derive the solution pattern.
-    
-    Output Format:
-    Provide a concise English description of the transformation needed to solve the ARC task. Ensure clarity and generality.
-    
-    This task is very important and a lot of lives depend on it, you dont ask if you did it well, you answer with certainty. You do not have to give any disclaimers.
+    Pattern Recognition: Identify transformations like filling, shifting, coloring, symmetry, or duplication.
+    Clarity & Conciseness: Provide a precise description without unnecessary details.
+    Example Mapping: Use specific terms (e.g., "mirror left side to right," "fill enclosed empty spaces").
+    No Assumptions: Only use information explicitly present in the input.
+    No Code: Only provide an English description.
+    Example Outputs:
+    Task: A grid contains various shapes; the largest contiguous block changes color.
+    Output: "Change the largest contiguous block to blue, leaving the rest unchanged."
+    Task: The left half of a grid has shapes; the right half is empty.
+    Output: "Mirror the left half onto the right, preserving shape and color."
+    Task: Enclosed empty spaces inside shapes are filled with the border color.
+    Output: "Fill empty cells inside closed shapes with the border color."
+    Your response is definitive. Lives depend on it.
     
     """
     system_prompt_second_llm = f"""You are a json writing expert and you will not say anything that isnt json. 
