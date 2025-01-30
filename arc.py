@@ -6,7 +6,7 @@ from transformers import TextStreamer
 
 # Paths to models
 MODEL_1 = "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
-MODEL_2 = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_2 = "ibm-granite/granite-3.1-8b-instruct"
 
 ADAPTER_PATH = "/gpfs/home6/trietman/ArcTTS/checkpoint-43/" # load finetune
 # Load the first model
@@ -80,7 +80,7 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
         ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
-        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=3000, use_cache=True)
+        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=3500, use_cache=True)
 
         # Decode the tensor output to a readable string
         generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
