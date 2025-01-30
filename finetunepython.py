@@ -1,6 +1,7 @@
 import os
 from dataclasses import dataclass, field
 
+
 from trl import SFTConfig, SFTTrainer
 from unsloth import FastLanguageModel
 from unsloth.chat_templates import get_chat_template
@@ -15,7 +16,7 @@ class ExperimentArguments:
     """
 
     pretrained_model_name_or_path: str = field(
-        default="deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+        default="deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
         metadata={
             "help": (
                 "The model checkpoint or HuggingFace repo id to load the model from"
@@ -103,17 +104,19 @@ def main(user_config, sft_config):
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=user_config.pretrained_model_name_or_path,
         max_seq_length=sft_config.max_seq_length,
-        device_map="auto",
+        device_map=None,
         dtype='auto',
-        load_in_4bit=False,
+        load_in_4bit=True,
         trust_remote_code=True,
     )
 
+    model = model.to("cuda")  # Move model explicitly to GPU    
+    
     dataset = prepare_dataset(dataset, tokenizer, user_config.from_foundation_model)
     sft_config.dataset_text_field = "text"
 
     model = apply_qlora(model, sft_config.max_seq_length)
-
+    
     trainer = SFTTrainer(
         model=model,
         args=sft_config,
