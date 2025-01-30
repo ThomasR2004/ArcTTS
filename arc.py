@@ -94,7 +94,7 @@ def run_second_llm(intermediate_results, system_prompt=None):
 def process_output_to_dict(final_results):
     """
     Processes the final results and stores them in a dictionary format with attempts.
-    Extracts only the "output" grid from the generated JSON.
+    Extracts the "output" grid from the generated JSON, handling both "test" and "output" keys.
 
     Args:
         final_results (dict): The final results from the second LLM.
@@ -113,12 +113,16 @@ def process_output_to_dict(final_results):
             
             # Extract the "output" grid
             if "test" in output_json and isinstance(output_json["test"], list):
+                # Case 1: "test" key contains a list of items
                 for item in output_json["test"]:
                     if "output" in item:
                         output_grid = item["output"]
                         break
                 else:
                     output_grid = None
+            elif "output" in output_json:
+                # Case 2: "output" key directly contains the grid
+                output_grid = output_json["output"]
             else:
                 output_grid = None
         except json.JSONDecodeError:
