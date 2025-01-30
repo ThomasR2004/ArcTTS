@@ -63,7 +63,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
     return output, removed_sections
 
 
-def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
+def run_second_llm(intermediate_results, system_prompt=None):
     final_output = {}
 
     for task_id, description in intermediate_results.items():
