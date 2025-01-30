@@ -233,8 +233,11 @@ if __name__ == "__main__":
 
     
     
-    output_file_path = "output.txt"
+    # Convert the dictionary to a single-line JSON string
+    json_string = json.dumps(final_output_dict, separators=(',', ':'))
+
+    # Write the single-line JSON string to the file
     with open(output_file_path, "w") as output_file:
-        json.dump(final_output_dict, output_file, indent=4)
+        output_file.write(json_string)
     
     print(f"Results written to {output_file_path}")
