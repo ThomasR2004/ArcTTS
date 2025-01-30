@@ -55,9 +55,7 @@ def run_second_llm(intermediate_results, system_prompt=None):
     for task_id, data in intermediate_results.items():
         description = data["description"]
         original_json = data["original_json"]
-
-        print("meow")
-        print(description)
+        
 
         # Ensure original_json is properly formatted
         if isinstance(original_json, str):
@@ -115,20 +113,12 @@ def process_output_to_dict(final_results):
     return task_dict
 
 def load_tasks(directory):
-    """
-    Load all JSON files from a directory and map them to task IDs.
-
-    Args:
-        directory (str): The path to the directory containing JSON task files.
-
-    Returns:
-        dict: A dictionary mapping task IDs to file paths.
-    """
     tasks = {}
     for file_name in os.listdir(directory):
         if file_name.endswith('.json'):
             task_id = os.path.splitext(file_name)[0]
-            tasks[task_id] = os.path.join(directory, file_name)
+            with open(os.path.join(directory, file_name), 'r') as f:
+                tasks[task_id] = json.load(f)  # Load JSON content instead of just the path
     return tasks
 
 def extract_after_think(response_text):
@@ -207,6 +197,8 @@ if __name__ == "__main__":
 
     # Output the final results
     print(final_output_dict)
+
+    
     
     output_file_path = "output.txt"
     with open(output_file_path, "w") as output_file:
