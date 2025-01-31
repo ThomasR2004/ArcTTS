@@ -92,6 +92,7 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
             generated_code = json_match.group(0)
 
         final_output[task_id] = {"generated_code": generated_code}
+        print(task_id)
 
     return final_output
 
@@ -217,7 +218,7 @@ if __name__ == "__main__":
     
     You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section.
     You will not apply any formatting to your json and provide it all in a single line." 
-    The Json will always start with "output":
+    Whatever result you get, you WILL SURROUND YOUR OUTPUT WITH [[]] if they are not there, so 6 becomes [[6]]
     """
     
     # **First Run**
