@@ -81,7 +81,7 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
         ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
-        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=2000, use_cache=True, repetition_penalty = 1.3)
+        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=2000, use_cache=True)
 
         # Decode the tensor output to a readable string
         generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
