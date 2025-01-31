@@ -52,7 +52,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
 
         text_streamer = TextStreamer(tokenizer_1)
         generated_tokens = model_1.generate(
-            input_ids=inputs, streamer=text_streamer, max_new_tokens=7000, use_cache=True
+            input_ids=inputs, streamer=text_streamer, max_new_tokens=7000, use_cache=True, repetition_penalty = 1.4
         )
 
         # Decode the tensor output to a readable string
