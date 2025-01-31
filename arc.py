@@ -81,7 +81,7 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
         ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
-        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=2000, use_cache=True, repetition_penalty = 1.4)
+        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=2000, use_cache=True, repetition_penalty = 1.3)
 
         # Decode the tensor output to a readable string
         generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
@@ -218,7 +218,6 @@ if __name__ == "__main__":
     
     You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section.
     You will not apply any formatting to your json and provide it all in a single line." 
-    You will only ever output ONE json and if you output a single digit make sure to also surround it with [[]]
     """
     
     # **First Run**
