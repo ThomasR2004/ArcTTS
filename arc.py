@@ -228,11 +228,11 @@ if __name__ == "__main__":
     final_output_dict = process_output_to_dict(final_results_1)
 
     # **Second Run** (Runs again on the same tasks)
-    #intermediate_results_2, removed_sections_2 = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
-   # final_results_2 = run_second_llm(intermediate_results_2, removed_sections_2, system_prompt=system_prompt_second_llm)
+    intermediate_results_2, removed_sections_2 = run_first_llm(tasks_dict, system_prompt=system_prompt_first_llm)
+    final_results_2 = run_second_llm(intermediate_results_2, removed_sections_2, system_prompt=system_prompt_second_llm)
 
     # Process second run output (stores attempt_2)
-    #final_output_dict = process_output_to_dict(final_results_2, existing_dict=final_output_dict)
+    final_output_dict = process_output_to_dict(final_results_2, existing_dict=final_output_dict)
 
     # Convert the dictionary to a single-line JSON string
     json_string = json.dumps(final_output_dict, separators=(',', ':'))
