@@ -52,7 +52,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
 
         text_streamer = TextStreamer(tokenizer_1)
         generated_tokens = model_1.generate(
-            input_ids=inputs, streamer=text_streamer, max_new_tokens=10000, use_cache=True
+            input_ids=inputs, streamer=text_streamer, max_new_tokens=10000, use_cache=False
         )
 
         # Decode the tensor output to a readable string
@@ -81,7 +81,7 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
         ).to("cuda")
 
         text_streamer = TextStreamer(tokenizer_2)
-        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=3500, use_cache=True)
+        generated_tokens = model_2.generate(input_ids=inputs, streamer=text_streamer, max_new_tokens=3500, use_cache=False)
 
         # Decode the tensor output to a readable string
         generated_code = tokenizer_2.decode(generated_tokens[0], skip_special_tokens=True)
@@ -241,14 +241,6 @@ if __name__ == "__main__":
     # Process second run output (stores attempt_2)
     final_output_dict = process_output_to_dict(final_results_2, existing_dict=final_output_dict)
 
-    # Convert the dictionary to a single-line JSON string
-    json_string = json.dumps(final_output_dict, separators=(',', ':'))
-
-    # Write the single-line JSON string to the file
-    with open("output.txt", "w") as output_file:
-        output_file.write(json_string)
-    
-    
     # Convert the dictionary to a single-line JSON string
     json_string = json.dumps(final_output_dict, separators=(',', ':'))
 
