@@ -52,7 +52,7 @@ def run_first_llm(tasks_dict, system_prompt=None):
 
         text_streamer = TextStreamer(tokenizer_1)
         generated_tokens = model_1.generate(
-            input_ids=inputs, streamer=text_streamer, max_new_tokens=10000, use_cache=True
+            input_ids=inputs, streamer=text_streamer, max_new_tokens=7000, use_cache=True
         )
 
         # Decode the tensor output to a readable string
@@ -95,15 +95,9 @@ def run_second_llm(intermediate_results, removed_sections, system_prompt=None):
 
     return final_output
 
-
-import json
-
-import ast
-import re
-
 def process_output_to_dict(final_results, existing_dict=None):
     """
-    Processes the final_results dictionary and extracts the first valid list of lists
+    Processes the final_results dictionary and extracts the SECOND valid list of lists
     from the "generated_code" field for each task_id. If the task_id already exists
     in the existing_dict, the new output is stored as "attempt_2".
 
@@ -124,25 +118,24 @@ def process_output_to_dict(final_results, existing_dict=None):
         # Extract the "generated_code" (which may contain extra text)
         generated_code = result_data.get("generated_code", "")
 
-        # Use regex to find the first valid list of lists in the generated_code string
+        # Use regex to find ALL valid lists of lists in the generated_code string
         list_pattern = r"\[(\s*\[.*?\],?\s*)+\]"
-        match = re.search(list_pattern, generated_code)
+        matches = re.findall(list_pattern, generated_code)
 
-        if match:
-            # Extract the matched string
-            matched_string = match.group(0)
+        # Initialize the output grid
+        output_grid = []
 
-            # Convert the matched string into a Python list of lists
+        # If there are at least two matches, extract the SECOND one
+        if len(matches) >= 2:
+            matched_string = matches[1]  # Second match
             try:
+                # Convert the matched string into a Python list of lists
                 output_grid = ast.literal_eval(matched_string)
+                # Ensure the extracted object is a list of lists
+                if not isinstance(output_grid, list) or not all(isinstance(row, list) for row in output_grid):
+                    output_grid = []  # Skip if the structure is invalid
             except (ValueError, SyntaxError):
                 output_grid = []  # Skip if the matched string is invalid
-
-            # Ensure the extracted object is a list of lists
-            if not isinstance(output_grid, list) or not all(isinstance(row, list) for row in output_grid):
-                output_grid = []  # Skip if the structure is invalid
-        else:
-            output_grid = []  # Skip if no valid list of lists is found
 
         # Check if the task_id already exists in the existing_dict
         if task_id in existing_dict:
