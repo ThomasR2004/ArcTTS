@@ -187,7 +187,7 @@ def extract_after_think(response_text, system_prompt_first_llm):
 
 # Example usage
 if __name__ == "__main__":
-    tasks_directory = 'onetask'
+    tasks_directory = 'all_arc'
     tasks_dict = load_tasks(tasks_directory)
     
     # Define system prompts
@@ -218,7 +218,6 @@ if __name__ == "__main__":
     
     You will give this solution by providing ONLY the output which is missing for the test input, do not include the input of the test section.
     You will not apply any formatting to your json and provide it all in a single line.
-    You will not write any extra descriptions or attempts after your first one.
     """
     
     # **First Run**
